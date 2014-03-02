@@ -8,12 +8,12 @@
 
 (def cljsbuild-version
   (let [[_ coords version]
-        (-> (or (resource "META-INF/leiningen/lein-cljsbuild/lein-cljsbuild/project.clj")
+        (-> (or (resource "META-INF/leiningen/com.taoensso.forks/lein-cljsbuild/project.clj")
                 ; this should only ever come into play when testing cljsbuild itself
                 "project.clj")
             slurp
             read-string)]
-    (assert (= coords 'lein-cljsbuild)
+    (assert (= coords 'com.taoensso.forks/lein-cljsbuild)
             (str "Something very wrong, could not find lein-cljsbuild's project.clj, actually found: "
                  coords))
     (assert (string? version)
