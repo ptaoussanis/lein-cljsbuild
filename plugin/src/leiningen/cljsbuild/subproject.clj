@@ -21,12 +21,6 @@
                  version))
     version))
 
-(def required-clojure-version "1.5.1")
-
-(def cljsbuild-dependencies
-  [['cljsbuild cljsbuild-version]
-   ['org.clojure/clojure required-clojure-version]])
-
 (defn- numeric-version [v]
   (map #(Integer. %) (re-seq #"\d+" (first (string/split v #"-" 2)))))
 
@@ -40,12 +34,15 @@
             (> seg1 seg2) true
             (< seg1 seg2) false))))
 
+(def min-clojure-version "1.5.1")
+
 (defn check-clojure-version [project-dependencies]
-  (if-let [clojure-dependency ('org.clojure/clojure project-dependencies)]
-    (let [version (first clojure-dependency)]
-      (when (not (version-satisfies? version required-clojure-version))
-        (lmain/abort (str "The ClojureScript compiler requires Clojure version >= "
-                          required-clojure-version))))))
+  (let [clojure-dependency ('org.clojure/clojure project-dependencies)]
+    (if (or (not clojure-dependency)
+            (let [version (first clojure-dependency)]
+              (not (version-satisfies? version min-clojure-version))))
+      (lmain/abort (str "The ClojureScript compiler requires Clojure version >= "
+                        min-clojure-version)))))
 
 (defn dependency-map [dependency-vec]
   (apply array-map (mapcat (juxt first rest) dependency-vec)))
@@ -59,7 +56,7 @@
 (defn merge-dependencies [project-dependencies]
   (let [project (dependency-map project-dependencies)
         desired-cljs-version ('org.clojure/clojurescript project)
-        cljsbuild (dependency-map cljsbuild-dependencies)
+        cljsbuild (dependency-map [['cljsbuild cljsbuild-version]])
         {acceptable-cljs-range :cljs} (cljs-compat/matrix cljsbuild-version)
         cljs-version-message [(format "You're using [lein-cljsbuild \"%s\"]," cljsbuild-version)
                    "which is known to work"
